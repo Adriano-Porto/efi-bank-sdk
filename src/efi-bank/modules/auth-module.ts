@@ -2,39 +2,17 @@ import axios from 'axios'
 import { readFileSync } from 'fs'
 import { Agent } from 'https'
 import path from 'path'
-import { inject, injectable } from 'tsyringe'
+import { type AuthModuleAuthenticateOutput, type EfiBankAuthModuleInput, type buildConfigOutput } from '../@types/auth-module'
 
-export interface EfiBankAuthModuleInput {
-  environment: 'DEV' | 'PROD'
-  clientPublicKey: string
-  clientSecretKey: string
-  certificatePath: string
-}
-
-interface AuthModuleAuthenticateOutput {
-  accessToken: string
-}
-
-interface buildConfigOutput {
-  config: {
-    httpsAgent: Agent
-    headers: {
-      'Content-Type': string
-      Authorization: string
-    }
-  }
-}
-
-@injectable()
-export class EfiBankAuthModule {
+export class AuthModule {
   private readonly clientPublicKey: string
   private readonly clientSecretKey: string
   protected readonly certificateFile: string
 
   public readonly environment: 'DEV' | 'PROD'
-  public readonly url: string
+  protected readonly url: string
 
-  constructor (@inject('EfiBankAuthModuleInput'){
+  constructor ({
     environment,
     clientPublicKey,
     clientSecretKey,
@@ -81,7 +59,7 @@ export class EfiBankAuthModule {
     return this.environment
   }
 
-  public async authenticate (): Promise<AuthModuleAuthenticateOutput> {
+  protected async authenticate (): Promise<AuthModuleAuthenticateOutput> {
     const url = this.url + '/oauth/token'
 
     const data = {
